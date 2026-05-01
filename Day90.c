@@ -1,54 +1,68 @@
 #include <stdio.h>
-#include <stdlib.h>
 
-// structure to store position and time
-typedef struct {
-    int position;
-    double time;
-} Car;
+// function to check if possible within given max time
+int isPossible(int boards[], int n, int k, int maxTime) {
+    int painters = 1;
+    int currSum = 0;
 
-// comparator for sorting in descending order of position
-int compare(const void *a, const void *b) {
-    Car *car1 = (Car *)a;
-    Car *car2 = (Car *)b;
-    return car2->position - car1->position; // descending
+    for (int i = 0; i < n; i++) {
+        if (boards[i] > maxTime)
+            return 0;
+
+        if (currSum + boards[i] <= maxTime) {
+            currSum += boards[i];
+        } else {
+            painters++;
+            currSum = boards[i];
+
+            if (painters > k)
+                return 0;
+        }
+    }
+    return 1;
 }
 
-int carFleet(int target, int position[], int speed[], int n) {
-    Car cars[n];
+int minTime(int boards[], int n, int k) {
+    int sum = 0, max = 0;
 
-    // Step 1: compute time for each car
     for (int i = 0; i < n; i++) {
-        cars[i].position = position[i];
-        cars[i].time = (double)(target - position[i]) / speed[i];
+        sum += boards[i];
+        if (boards[i] > max)
+            max = boards[i];
     }
 
-    // Step 2: sort cars by position (descending)
-    qsort(cars, n, sizeof(Car), compare);
+    int low = max, high = sum, ans = sum;
 
-    int fleets = 0;
-    double maxTime = 0.0;
+    while (low <= high) {
+        int mid = (low + high) / 2;
 
-    // Step 3: count fleets
-    for (int i = 0; i < n; i++) {
-        if (cars[i].time > maxTime) {
-            fleets++;
-            maxTime = cars[i].time;
+        if (isPossible(boards, n, k, mid)) {
+            ans = mid;
+            high = mid - 1;
+        } else {
+            low = mid + 1;
         }
     }
 
-    return fleets;
+    return ans;
 }
 
 int main() {
-    int target = 12;
-    int position[] = {10, 8, 0, 5, 3};
-    int speed[] = {2, 4, 1, 1, 3};
-    int n = sizeof(position) / sizeof(position[0]);
+    int n, k;
 
-    int result = carFleet(target, position, speed, n);
+    printf("Enter number of boards and painters: ");
+    scanf("%d %d", &n, &k);
 
-    printf("Number of car fleets: %d\n", result);
+    int boards[n];
+
+    printf("Enter board lengths: ");
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &boards[i]);
+    }
+
+    int result = minTime(boards, n, k);
+
+    printf("Minimum time required: %d\n", result);
 
     return 0;
 }
